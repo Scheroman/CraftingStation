@@ -1,0 +1,32 @@
+﻿@page "/weather"
+@using CraftingStation.Components.Grid
+@using CraftingStation.Components.Grid.Data
+
+
+@code {
+    private GridCollection<SampleClass> collection = new GridCollection<SampleClass>(s => s.Id);
+
+    private int currentCount = 0;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        collection.Add(new SampleClass()
+            {
+                Id = "1",
+                Text = "Hello World",
+                SomeNumber = 0,
+                Uneditable = "Some random text",
+                RandomBool = true
+            });
+
+        collection.Add(new SampleClass()
+            {
+                Id = "2",
+                Text = "Wueh es funzt",
+                SomeNumber = 5,
+                Uneditable = "random shit"
+            });
+
+    }
+}
