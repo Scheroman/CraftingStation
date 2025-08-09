@@ -1,0 +1,74 @@
+﻿@page "/configurable"
+@using CraftingStation.Components.Configurable
+@using CraftingStation.Components.Performance_Test
+@using CraftingStation.Components.Rendering
+@using CraftingStation.Components.Grid
+@using CraftingStation.Components.Grid.Data
+@using CraftingStation.Components.Search.Data
+@using CraftingStation.Components.Search.Data.Actions
+@using Telerik.DataSource
+@rendermode RenderMode.InteractiveWebAssembly
+
+
+<ConfigurableContainer ID="global">
+    <ConfigurableItem Order="2" ID="card" >
+                <TelerikCard>
+                    <CardBody>
+                        <ConfigurableContainer ID="card">
+                            <ConfigurableItem ID="card_name">
+                                Name: Dustin<br />
+                            </ConfigurableItem>
+                            <ConfigurableItem Order="-1" Visible="false" ID="card_age">
+                                Alter: 18<br />
+                            </ConfigurableItem>
+                            <ConfigurableItem ID="card_image">
+                                <img src="https://i.insider.com/5a00ba9c8ed9e523008b4612?width=1100&format=jpeg&auto=webp" width="200px" height="150px" />
+                            </ConfigurableItem>
+                        </ConfigurableContainer>
+                    </CardBody>
+                </TelerikCard>
+    </ConfigurableItem>
+
+    <ConfigurableItem Order="1" ID="title">
+        <h3>Everything Is Configurable</h3>
+    </ConfigurableItem>
+
+    <ConfigurableItem ID="anotherone">
+        <TelerikCard>
+            <CardHeader>
+                Description
+            </CardHeader>
+                    <CardBody>
+                        <ConfigurableContainer ID="anotherone_body">
+                            <ConfigurableItem ID="anotherone_subtitle">
+                            <CardSubTitle>Unlimited Possibilities</CardSubTitle>
+                            </ConfigurableItem>
+                            <ConfigurableItem ID="anotherone_1">
+                                I can rearrange everything <br/>
+                            </ConfigurableItem>
+                            <ConfigurableItem ID="anotherone_2">
+                                Look at me <br/>
+                            </ConfigurableItem>
+                        </ConfigurableContainer>
+                    </CardBody>
+                </TelerikCard>
+    </ConfigurableItem>
+</ConfigurableContainer>
+
+<TelerikCheckBox @bind-Value="edit" /> Edit
+
+@code {
+    
+    private bool edit {get
+        {
+            return EditMode;
+        }
+        set
+        {
+            EditMode = value;
+        }
+    }
+
+    public static bool EditMode = false;
+
+}

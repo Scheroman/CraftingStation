@@ -1,0 +1,26 @@
+﻿@inject ConfigurationService configurationService
+
+@code {
+    [CascadingParameter]
+    private ConfigurableContainer? Container { get; set; }
+    [Parameter]
+    public int Order { get; set; }
+    [Parameter]
+    public bool Visible { get; set; } = true;
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+    [Parameter]
+    public string ID { get; set; }
+
+    protected override void OnInitialized() {
+        base.OnInitialized();
+
+        ConfigurableContainer.Configurable defaultConfigurable = new ConfigurableContainer.Configurable() {
+            ID = this.ID,
+            Order = Order,
+            Visible = Visible,
+            Content = ChildContent};
+        
+        Container?.Register(configurationService.GetConfigurable(defaultConfigurable));
+    }
+}

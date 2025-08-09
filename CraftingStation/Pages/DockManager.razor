@@ -1,0 +1,61 @@
+﻿
+@* <TelerikDockManager Height="90vh">
+    <DockManagerPanes>
+
+        <DockManagerSplitPane Orientation="@DockManagerPaneOrientation.Vertical"
+                              Size="40%">
+            <Panes>
+
+                <DockManagerContentPane Size="55%" HeaderText="Pane 1.1">
+                    <Content>
+                        First Content Pane in Split configuration
+                    </Content>
+                </DockManagerContentPane>
+
+                <DockManagerContentPane HeaderText="Pane 1.2">
+                    <Content>
+                        Second Content Pane in Split configuration
+                    </Content>
+                </DockManagerContentPane>
+
+            </Panes>
+        </DockManagerSplitPane>
+
+        <DockManagerTabGroupPane>
+            <Panes>
+
+                <DockManagerContentPane HeaderText="Tab 2.1">
+                    <Content>
+                        First Tab Content
+                    </Content>
+                </DockManagerContentPane>
+
+                <DockManagerContentPane HeaderText="Tab 2.2">
+                    <Content>
+                        Second Tab Content
+                    </Content>
+                </DockManagerContentPane>
+
+            </Panes>
+        </DockManagerTabGroupPane>
+    </DockManagerPanes>
+
+    <DockManagerFloatingPanes>
+        <DockManagerSplitPane>
+            <Panes>
+
+                <DockManagerContentPane HeaderText="Floating Pane">
+                    <Content>
+                        Floating Pane Content
+                    </Content>
+                </DockManagerContentPane>
+
+            </Panes>
+        </DockManagerSplitPane>
+    </DockManagerFloatingPanes>
+</TelerikDockManager>
+
+@code {
+
+}
+ *@

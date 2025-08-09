@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Components\DockManager\" />
     <Folder Include="Services\" />
   </ItemGroup>
 

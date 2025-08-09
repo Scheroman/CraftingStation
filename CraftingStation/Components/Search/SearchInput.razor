@@ -1,0 +1,129 @@
+﻿
+@using System.Reflection
+@using CraftingStation.Components.Search.Data
+@using CraftingStation.Components.Search.Data.Actions
+@using System.Collections.ObjectModel
+
+@rendermode RenderMode.InteractiveWebAssembly
+@inject NavigationManager navManager
+
+@if (visible)
+{
+    <div class="backdrop" @onclick="toggleInput"></div>
+    <div class="centered-div">
+        @* <div style="display: flex; flex-direction:column;">
+            <input @oninput="onChange" @onkeydown="onKeyDown" value="@this.input" />
+
+            @foreach (SearchContext context in results)
+            {
+                <button @onclick="() => execute(context.Action)">@context.Name</button>
+            }
+        </div> *@
+        <TelerikAutoComplete ValueChanged="onChange"  Data="results" />
+
+    </div>
+}
+
+<SectionContent SectionName="SearchButton">
+    @* <button @onclick="toggleInput"><i class="fa fa-search" @onkeydown="test" /></button> *@
+    <TelerikButton @onclick="toggleInput"  Icon="FontIcon.Search" />
+</SectionContent>
+
+
+
+<style>
+    .centered-div {
+        position: fixed; /* Fix the div to the viewport */
+        top: 50%; /* Center vertically */
+        left: 50%; /* Center horizontally */
+        transform: translate(-50%, -50%); /* Adjust for the element's own width and height */
+        z-index: 9999; /* Ensure the div is on top */
+        background-color: white; /* Optional: background color */
+        padding: 20px; /* Optional: padding */
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Optional: shadow */
+        border: 1px solid black; /* Optional: border */
+    }
+
+    .backdrop {
+        position: fixed; /* Fix the backdrop to the viewport */
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+        z-index: 9998; /* Ensure the backdrop is below the centered div but above other content */
+    }
+</style>
+
+@code {
+    private string input = string.Empty;
+    private List<SearchContext> searchContexts = new List<SearchContext>();
+    private ObservableCollection<SearchContext> results = new ObservableCollection<SearchContext>();
+    private bool visible = false;
+
+    protected override void OnInitialized()
+    {
+        foreach (Type myType in System.Reflection.Assembly.GetExecutingAssembly().GetTypes().Where(myType => myType.GetInterfaces().Contains(typeof(ISearchable))))
+        {
+            MethodInfo method = myType.GetMethod(nameof(ISearchable.SearchContext));
+
+            if (method == null)
+            {
+                continue;
+            }
+
+            List<SearchContext> contexts = (List<SearchContext>)method.Invoke(null, null);
+
+            if (contexts != null)
+            {
+                searchContexts.AddRange(contexts);
+            }
+        }
+    }
+
+    private void onChange(object obj)
+    {
+        this.input = (string)obj;
+        string sanatized = input.ToLower();
+
+        List<SearchContext> searchResults = searchContexts.Select(c => c).Where(c => c.Name.ToLower().StartsWith(sanatized)).ToList();
+        searchResults.AddRange(searchContexts.Select(c => c).Where(c => c.Name.ToLower().Contains(sanatized)).ToList());
+        searchResults = searchResults.Distinct().ToList();
+        results = new ObservableCollection<SearchContext>(searchResults);
+        StateHasChanged();
+    }
+
+
+    private void execute(ISearchAction action)
+    {
+        action.Execute(navManager);
+        this.visible = false;
+    }
+
+    private void toggleInput()
+    {
+        this.visible = !visible;
+        this.input = string.Empty;
+        StateHasChanged();
+
+    }
+
+    private void onKeyDown(KeyboardEventArgs e)
+    {
+        if(e.Code == "Enter" || e.Code == "NumpadEnter")
+        {
+            SearchContext? searchContext = results.FirstOrDefault();
+            if (searchContext != null)
+            {
+                searchContext.Action.Execute(navManager);
+            }
+        }
+    }
+
+    private void test()
+    {
+        
+    }
+
+
+}

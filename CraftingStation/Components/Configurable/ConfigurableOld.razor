@@ -1,0 +1,156 @@
+﻿@* @using System.Reflection
+@using CraftingStation.Pages
+
+@if (isInitializing) {
+    <CascadingValue Value="this" Name="Parent">
+        @ChildContent
+    </CascadingValue>
+}
+
+@if ((Visible || Counter.EditMode) && !isInitializing) {
+
+
+    @foreach (Configurable config in children.Where(c => c.Visible || Counter.EditMode).OrderBy(c => c.Index)) {
+        <div>
+            @config.test
+            @if (Counter.EditMode) {
+                <TelerikCheckBox @bind-Value="config.Visible" />
+            }
+        </div>
+
+    }
+}
+
+
+
+@code {
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    [CascadingParameter(Name = "Parent")]
+    public Configurable Parent { get; set; }
+
+    [Parameter]
+    public bool Visible { get; set; } = true;
+
+    [Parameter]
+    public int Index { get; set; }
+
+    public bool isInitializing = true;
+
+    public List<Configurable> children = new List<Configurable>();
+
+    private string opactiy => Visible ? "1.0" : "0.5";
+    private bool lastMode = false;
+
+
+    public RenderFragment test =>@<span style="opacity: @opactiy">
+@if(children.Count == 0) {
+@ChildContent
+    } else {
+@foreach (Configurable config in children.Where(c => c.Visible || Counter.EditMode).OrderBy(c => c.Index)) {
+    <div>
+        @config.test
+        @if(Counter.EditMode)
+                {
+        <TelerikCheckBox @bind-Value="config.Visible" />
+                }
+    </div>
+    }
+    }
+</span>
+    ;
+
+//     public RenderFragment RenderFragment =>@<div>
+// @if (isInitializing && Visible) {
+//     <CascadingValue Value="this" Name="Parent">
+//         @ChildContent
+//     </CascadingValue>
+//     }
+
+// @if (Visible && !isInitializing) {
+
+//     Configurable configurable = this;
+
+// @foreach (Configurable config in children.Where(c => c.Visible).OrderBy(c => c.Index)) {
+// @config.RenderFragment
+//     }
+//     }
+//     </div>;
+
+protected override void OnInitialized() {
+    base.OnInitialized();
+    isInitializing = true;
+
+    if (Parent != null) {
+        Parent.Register(this);
+    }
+}
+
+// protected override void OnParametersSet()
+// {
+//     base.OnParametersSet();
+//     if (lastMode != Mode)
+//     {
+//         lastMode = Mode;
+//         StateHasChanged();
+//     }
+// }
+
+
+RenderFragment RenderContent(ComponentBase instance) {
+    var fragmentField = GetPrivateField(instance.GetType(), "_renderFragment");
+
+    var value = (RenderFragment)fragmentField.GetValue(instance);
+
+    return value;
+}
+
+
+private static FieldInfo GetPrivateField(Type t, String name) {
+    const BindingFlags bf = BindingFlags.Instance |
+                            BindingFlags.NonPublic |
+                            BindingFlags.DeclaredOnly;
+
+    FieldInfo fi;
+    while ((fi = t.GetField(name, bf)) == null && (t = t.BaseType) != null)
+        ;
+
+    return fi;
+}
+
+protected override void OnAfterRender(bool firstRender) {
+    base.OnAfterRender(firstRender);
+    if (this.isInitializing && areChildrenDone()) {
+        this.isInitializing = false;
+        // StateHasChanged();
+        Parent?.CheckForRefresh();
+
+    }
+}
+
+public void Register(Configurable child) {
+    if (!children.Contains(child)) {
+        children.Add(child);
+    }
+}
+
+public void CheckForRefresh() {
+    if (areChildrenDone()) {
+        this.isInitializing = false;
+        // StateHasChanged();
+        Parent?.CheckForRefresh();
+    }
+
+    if (Parent == null) {
+        StateHasChanged();
+    }
+}
+
+private bool areChildrenDone() {
+    return children.Count() == 0 || !children.Any(c => c.isInitializing);
+}
+
+
+}
+ *@

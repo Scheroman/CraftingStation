@@ -1,7 +1,20 @@
 ﻿@page "/"
+@using CraftingStation.Components.Search.Data
+@using CraftingStation.Components.Search.Data.Actions
+@implements ISearchable
 
 <PageTitle>Home</PageTitle>
 
 <h1>Hello, world!</h1>
 
 Welcome to your new app.
+
+@code {
+    public static List<SearchContext> SearchContext()
+    {
+        return new List<SearchContext>
+            {
+                new SearchContext("Home", new NavigationAction("/"))
+    };
+    }
+}

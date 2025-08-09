@@ -1,0 +1,137 @@
+﻿@using CraftingStation.Pages
+@inject ConfigurationService configurationService
+
+<span class="overlay">
+    <CascadingValue Value="this">
+        @ChildContent
+    </CascadingValue>
+
+    @if (!Edit) {
+        @foreach (Configurable configurable in configurables.Where(c => c.Visible || ConfigurableTest.EditMode).OrderBy(c => c.Order)) {
+            <span style="opacity: @getOpacity(configurable); width:100%">
+                @configurable.Content
+                @if (ConfigurableTest.EditMode) {
+                    <TelerikCheckBox Value="configurable.Visible" ValueChanged="(bool val) => setValue(val, configurable)" />
+                }
+            </span>
+        }
+    } else {
+        <TelerikListBox @ref="listbox" Class="container" Id="@ID" Data="configurables.OrderBy(c => c.Order).Select(c => c.ID)" DropSources="new List<string>() { ID }"
+                        Draggable="true" SelectionMode="@ListBoxSelectionMode.Multiple" OnDrop="( (ListBoxDropEventArgs<string> args) => OnListBoxDrop(args))">
+        <ItemTemplate>
+            @{
+                    Configurable? configurable = configurables.FirstOrDefault(c => c.ID.Equals(context));
+                }
+                <span style="opacity: @getOpacity(configurable); width:100%">
+                    @configurable.Content
+                    @if (ConfigurableTest.EditMode) {
+                        <TelerikCheckBox Value="configurable.Visible" ValueChanged="(bool val) => setValue(val, configurable)" />
+                    }
+                </span>
+            </ItemTemplate>
+            <ListBoxToolBarSettings>
+                <ListBoxToolBar Visible="false" />
+            </ListBoxToolBarSettings>
+        </TelerikListBox>
+    }
+
+    @if (ConfigurableTest.EditMode) {
+        <TelerikButton Class="button-overlay" OnClick="() => this.Edit = !this.Edit">Move</TelerikButton>
+    } else if (this.Edit) {
+        this.Edit = false;
+        StateHasChanged();
+    }
+</span>
+<style>
+    .k-listbox.container {
+        width: 100%;
+        max-width: 100%;
+        padding: 0px;
+        height: auto;
+    }
+
+    .button-overlay {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        z-index: 10;
+    }
+
+    .overlay {
+        position: relative;
+        display: block;
+    }
+
+</style>
+
+@code {
+    [Parameter]
+    public string ID { get; set; } = "123";
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    [Parameter]
+    public bool Edit { get; set; } = false;
+
+    private List<Configurable> configurables = new List<Configurable>();
+    private TelerikListBox<string> listbox;
+
+    public void Register(Configurable configurable) {
+        if (!configurables.Contains(configurable)) {
+            configurables.Add(configurable);
+            configurables = configurables.OrderBy(c => c.Order).ToList();
+
+            StateHasChanged();
+        }
+    }
+
+    public class Configurable {
+        public string ID { get; set; } = Guid.NewGuid().ToString();
+        public int Order { get; set; }
+        public bool Visible { get; set; }
+        public RenderFragment Content { get; set; }
+    }
+
+    private string getOpacity(Configurable configurable) {
+        return configurable.Visible ? "1.0" : "0.5";
+    }
+
+    private void setValue(bool value, Configurable configurable) {
+        int index = configurables.IndexOf(configurable);
+        if (index >= 0 && index < configurables.Count) {
+            configurables[index].Visible = value;
+        }
+
+        configurationService.AddOrUpdateConfigurable(configurable);
+
+    }
+
+    private void moveItem(int oldIndex, int newIndex) {
+        if (oldIndex == newIndex || oldIndex < 0 || newIndex < 0 ||
+            oldIndex >= configurables.Count || newIndex >= configurables.Count)
+            return;
+
+        // Remove the item from the old position
+        var item = configurables[oldIndex];
+        configurables.RemoveAt(oldIndex);
+
+        // Insert at the new position
+        configurables.Insert(newIndex, item);
+
+        // Reassign order based on current list position
+        for (int i = 0; i < configurables.Count; i++) {
+            configurables[i].Order = i;
+            configurationService.AddOrUpdateConfigurable(configurables[i]);
+        }
+    }
+
+    private void OnListBoxDrop(ListBoxDropEventArgs<string> args) {
+        var destinationIndex = args.DestinationIndex ?? 0;
+        Configurable configurable = configurables.FirstOrDefault(c => c.ID.Equals(args.Items.FirstOrDefault()));
+        int oldIndex = configurables.IndexOf(configurable);
+
+        moveItem(oldIndex, destinationIndex);
+        listbox.Rebind();
+    }
+}

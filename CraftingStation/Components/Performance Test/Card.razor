@@ -1,0 +1,47 @@
+﻿@implements IComponent
+<TelerikCard>
+    <CardHeader>
+        Hello World
+    </CardHeader>
+    <CardBody>
+        <CardTitle>Rome</CardTitle>
+        <CardSubTitle>Capital of Italy</CardSubTitle>
+        <CardSeparator></CardSeparator>
+        Some Content
+    </CardBody>
+</TelerikCard>
+
+@code {
+    [Parameter]
+    public bool ShouldRenderBool { get; set; } = true;
+
+    [Parameter]
+    public string UselessString { get; set; } = "";
+
+    protected override void OnParametersSet() {
+        base.OnParametersSet();
+
+    }
+    public override Task SetParametersAsync(ParameterView parameters) {
+        foreach (var parameter in parameters) {
+            switch (parameter.Name) {
+                case nameof(ShouldRenderBool):
+                    ShouldRenderBool = (bool)parameter.Value;
+                    break;
+                case nameof(UselessString):
+                    UselessString = (string)parameter.Value;
+                    break;
+                
+                default:
+                    throw new ArgumentException($"Unknown parameter: {parameter.Name}");
+            }
+        }
+
+        return base.SetParametersAsync(ParameterView.Empty);
+    }
+
+
+    protected override bool ShouldRender() {
+        return this.ShouldRenderBool;
+    }
+}

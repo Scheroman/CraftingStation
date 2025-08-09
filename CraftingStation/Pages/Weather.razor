@@ -1,6 +1,9 @@
 ﻿@page "/weather"
 @using CraftingStation.Components.Grid
 @using CraftingStation.Components.Grid.Data
+@using CraftingStation.Components.Search.Data
+@using CraftingStation.Components.Search.Data.Actions
+@implements ISearchable
 
 
 @code {
@@ -28,5 +31,13 @@
                 Uneditable = "random shit"
             });
 
+    }
+
+    public static List<SearchContext> SearchContext()
+    {
+        return new List<SearchContext>
+            {
+                new SearchContext("Weather", new NavigationAction("/weather"))
+    };
     }
 }
