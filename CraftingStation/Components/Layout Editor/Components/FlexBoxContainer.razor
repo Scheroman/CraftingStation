@@ -1,0 +1,34 @@
+﻿@inherits BaseContainer
+
+@((RenderFragment)base.BuildRenderTree)
+
+<style>
+    .flexbox-container {
+
+        display: flex;
+        flex-direction: @FlexDirection;
+        gap: 100px;
+    }
+</style>
+
+@code {
+    [Parameter]
+    public string FlexDirection { get; set; } = "row";
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        this.AddOrUpdateKey("display", "flex");
+        this.SetFlexDirection(FlexDirection);
+    }
+
+    public void SetFlexDirection(string direction)
+    {
+        this.FlexDirection = direction;
+        this.AddOrUpdateKey("flex-direction", direction);
+        UpdateParam(nameof(FlexDirection), direction);
+        StateHasChanged();
+    }
+
+   
+}

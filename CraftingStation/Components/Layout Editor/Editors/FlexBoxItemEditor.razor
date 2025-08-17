@@ -1,0 +1,27 @@
+﻿@using CraftingStation.Components.Layout_Editor.Components
+@inherits BaseEditorExtension<FlexBoxItem>
+<ToolBarTemplateItem>
+    Flex-Grow
+    <TelerikTextBox @bind-Value="flexGrow" />
+</ToolBarTemplateItem>
+<ToolBarButtonGroup SelectionMode="@ButtonGroupSelectionMode.Single">
+    <ToolBarToggleButton >@("<-")</ToolBarToggleButton>
+    <ToolBarToggleButton >@("-")</ToolBarToggleButton>
+    <ToolBarToggleButton >@("->")</ToolBarToggleButton>
+    
+</ToolBarButtonGroup>
+
+@code {
+
+
+    private string flexGrow {
+        get {
+            return Component?.FlexGrow;
+        }
+        set {
+            Component?.SetFlexGrow(value);
+        }
+    }
+
+    private bool leftSelected = true;
+}

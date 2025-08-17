@@ -1,0 +1,114 @@
+﻿@using CraftingStation.Components.Layout_Editor.Components
+@using CraftingStation.Components.Layout_Editor.Data
+@using CraftingStation.Components.Layout_Editor.Editors
+<TelerikCheckBox @bind-Value="editorData.Edit" />
+<TelerikButton OnClick="() => StateHasChanged()">Aktualisieren</TelerikButton>
+
+@if (this.editorData.Edit) {
+    <TelerikToolBar>
+        <ToolBarButton OnClick="addFlexBox">Add Flex</ToolBarButton>
+        <ToolBarButton OnClick="addFlexBoxItem">Add Flex-Item</ToolBarButton>
+        <ToolBarButton OnClick="addDiv">Add div</ToolBarButton>
+        <ToolBarButton OnClick="deleteComponent">Delete</ToolBarButton>
+
+        @if (selectedEditorExtension != null) {
+            
+            <CascadingValue Value="editorData">
+                <DynamicComponent @ref="selectedEditorExtension.DynamicComponent" Type="selectedEditorExtension.Type" Parameters="selectedEditorExtension.Parameters" />
+            </CascadingValue>
+        }
+
+    </TelerikToolBar>
+
+}
+
+<CascadingValue Value="editorData">
+    <BaseContainer Container="editorComponentData" />
+</CascadingValue>
+
+<style>
+    .content-container {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        margin-top: 12px;
+    }
+
+    .selectable-div {
+        padding: 16px;
+        border: 1px dashed rgba(0, 0, 0, 0.1);
+        transition: background-color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .selection-active:not(:has(.selection-active:hover)):hover {
+        outline: 2px solid #0078d4;
+        background-color: rgba(0, 120, 212, 0.1);
+        cursor: pointer;
+    }
+
+    /* Show a distinct style for selected */
+    .selected {
+        background-color: rgba(0, 120, 212, 0.2);
+        border-color: #0078d4;
+    }
+</style>
+
+@code {
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+    private EditorComponentData editorComponentData = new EditorComponentData(null);
+    private ContainerData container => editorComponentData.Component as ContainerData;
+
+    private EditorData editorData = new EditorData();
+    private ComponentData selectedEditorExtension => editorData?.SelectedComponent?.EditorExtensionComponent;
+    private ComponentData selectedComponent => editorData?.SelectedComponent?.Component;
+
+    protected override void OnInitialized() {
+        base.OnInitialized();
+        editorComponentData.Component = new ContainerData(null);
+        editorData.EditorDataChanged += refresh;
+    }
+
+    private void addFlexBox() {
+        EditorComponentData flexBox = new EditorComponentData(new ContainerData(typeof(FlexBoxContainer)), 
+                                                            typeof(FlexBoxContainerEditor), 
+                                                            new ContainerData(typeof(FlexBoxItem)));
+        this.addComponent(flexBox);
+    }
+
+    private void addFlexBoxItem() {
+        EditorComponentData flexBoxItem = new EditorComponentData(new ContainerData(typeof(FlexBoxItem)), typeof(FlexBoxItemEditor), null);
+        this.addComponent(flexBoxItem);
+    }
+
+    private void addDiv() {
+        EditorComponentData div = new EditorComponentData(new ComponentData(typeof(Components.Div)));
+        this.addComponent(div);
+    }
+
+    private void deleteComponent() {
+        if (selectedComponent != null) {
+            ContainerData parent = (ContainerData)selectedComponent.Parent.Component; // bad change
+            var toRemove = parent?.Children
+                .FirstOrDefault(c => c.ID == selectedComponent.ID);
+            parent?.Children.Remove(toRemove);
+            editorData.SelectedComponent = null;
+        }
+    }
+
+    private void addComponent(EditorComponentData editorComponentData) {
+        if (selectedComponent != null && selectedComponent is ContainerData parent) {
+            editorComponentData.Component.Parent = editorData.SelectedComponent;
+            parent.Children.Add(editorComponentData.Component);
+        } else {
+            
+                
+            editorComponentData.Component.Parent = this.editorComponentData;
+            this.container.Children.Add(editorComponentData.Component);
+        }
+    }
+
+    private void refresh(object sender, EditorData data) {
+        StateHasChanged();
+    }
+}

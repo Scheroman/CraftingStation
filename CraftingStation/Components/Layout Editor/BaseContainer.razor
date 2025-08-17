@@ -1,0 +1,65 @@
+@using CraftingStation.Components.Layout_Editor.Data
+<EditorComponent Style="@stylesString" ComponentData="Container">
+    @* @if (this.container == null) {
+        return;
+    }
+ *@
+    @foreach (ComponentData component in this.container.Children) {
+        @* if (component is ContainerMetadata) { *@
+        <DynamicComponent @key="component.ID" @ref="component.DynamicComponent" Type="component.Type" Parameters="component.Parameters" />
+        @* } else {
+            <EditorComponent Component="component">
+                <DynamicComponent @key="component.ID" @ref="component.Component" Type="component.Type" Parameters="component.Parameters" />
+            </EditorComponent>
+        } *@
+    }
+
+</EditorComponent>
+
+@code {
+
+    [Parameter]
+    public EditorComponentData Container { get; set; }
+
+    [CascadingParameter]
+    public EditorData EditorData { get; set; }
+
+    private ContainerData container => this.Container?.Component as ContainerData;
+
+    protected Dictionary<string, string> Styles = new Dictionary<string, string>();
+
+    protected void AddOrUpdateKey(string key, string value) {
+        if (this.Styles.ContainsKey(key)) {
+            this.Styles[key] = value;
+        } else {
+            this.Styles.Add(key, value);
+        }
+
+
+
+    }
+
+    protected void UpdateParam(string name, object value) {
+        if (Container == null) {
+            return;
+        }
+
+        Container.Component.AddOrUpdateParameter(name, value);
+    }
+
+    protected void Refresh() {
+        StateHasChanged();
+    }
+
+    private string stylesString {
+        get {
+            string result = "";
+
+            foreach (KeyValuePair<string, string> keyValuePair in Styles) {
+                result += keyValuePair.Key + ": " + keyValuePair.Value + ";";
+            }
+
+            return result;
+        }
+    }
+}

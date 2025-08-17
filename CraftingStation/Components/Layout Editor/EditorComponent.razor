@@ -1,0 +1,51 @@
+﻿@using CraftingStation.Components.Layout_Editor.Data
+
+@if (EditorData.Edit) {
+    <div class="selectable-div @(EditorData.Edit ? "selection-active" : "") @(isSelected ? " selected" : "")"
+         @onmouseover="@(() => onHover(ComponentData))" @onmouseover:stopPropagation="true"
+         @onclick="@(() => onClick(ComponentData))" @onclick:stopPropagation="true" style="@Style">
+        @ChildContent
+    </div>
+} else {
+    <div style="@Style">
+        @ChildContent
+    </div>
+}
+
+@code {
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    [Parameter]
+    public EditorComponentData ComponentData { get; set; }
+
+    [CascadingParameter]
+    public EditorData EditorData { get; set; }
+
+    [Parameter]
+    public string Style { get; set; }
+
+
+    private bool isSelected => ComponentData != null && ComponentData.Component.ID.Equals(EditorData?.SelectedComponent?.Component?.ID);
+
+    private void onHover(EditorComponentData editorComponent) {
+        if (!EditorData.Edit) {
+            return;
+        }
+
+        EditorData.HoveredComponent = editorComponent.Component;
+    }
+
+    private void onClick(EditorComponentData editorComponent) {
+
+        if (!EditorData.Edit) {
+            return;
+        }
+
+        if (EditorData.SelectedComponent == null || !EditorData.SelectedComponent.Component.ID.Equals(editorComponent.Component.ID)) {
+            EditorData.SelectedComponent = editorComponent;
+        } else {
+            EditorData.SelectedComponent = null;
+        }
+    }
+}

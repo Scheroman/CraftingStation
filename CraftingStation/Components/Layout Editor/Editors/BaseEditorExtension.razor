@@ -1,0 +1,22 @@
+﻿@using CraftingStation.Components.Layout_Editor.Data
+@typeparam T
+
+
+@code {
+    protected T Component => getComponent();
+
+
+
+    [CascadingParameter]
+    public EditorData EditorData { get; set; }
+
+    private T getComponent()
+    {
+        if (EditorData == null || EditorData.SelectedComponent == null || EditorData.SelectedComponent.Component == null
+            || EditorData.SelectedComponent.Component.DynamicComponent?.Instance == null || EditorData.SelectedComponent.Component.DynamicComponent.Instance is not T) {
+            return default;
+        }
+
+        return (T)EditorData?.SelectedComponent?.Component?.DynamicComponent.Instance;
+    }
+}

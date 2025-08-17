@@ -1,0 +1,15 @@
+﻿@using CraftingStation.Components.Layout_Editor.Components
+@inherits BaseEditorExtension<FlexBoxContainer>
+
+<ToolBarToggleButton @bind-Selected="flexDirection">Row/Column</ToolBarToggleButton>
+
+@code {
+    private bool flexDirection {
+        get {
+            return Component?.FlexDirection == "row";
+        }
+        set {
+            Component?.SetFlexDirection(value ? "row" : "column");
+        }
+    }
+}

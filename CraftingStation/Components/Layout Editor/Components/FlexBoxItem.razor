@@ -1,0 +1,34 @@
+﻿@inherits BaseContainer
+
+@((RenderFragment)base.BuildRenderTree)
+
+@code {
+    [Parameter]
+    public string FlexGrow { get; set; } = "0";
+
+    // protected Dictionary<string, string> Styles = new Dictionary<string, string>();
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        this.SetFlexGrow(FlexGrow, false);
+
+        StateHasChanged();
+    }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+    }
+
+    public void SetFlexGrow(string flexGrow, bool update = true)
+    {
+        this.FlexGrow = flexGrow;
+        this.AddOrUpdateKey("flex-grow", flexGrow);
+        UpdateParam(nameof(FlexGrow), flexGrow);
+        if (update) {
+            this.Refresh();
+        }
+    }
+
+}
