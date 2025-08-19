@@ -1,6 +1,7 @@
 ﻿@using CraftingStation.Components.Layout_Editor.Components
 @using CraftingStation.Components.Layout_Editor.Data
 @using CraftingStation.Components.Layout_Editor.Editors
+@using System.Text.Json
 <TelerikCheckBox @bind-Value="editorData.Edit" />
 <TelerikButton OnClick="() => StateHasChanged()">Aktualisieren</TelerikButton>
 
@@ -9,10 +10,12 @@
         <ToolBarButton OnClick="addFlexBox">Add Flex</ToolBarButton>
         <ToolBarButton OnClick="addFlexBoxItem">Add Flex-Item</ToolBarButton>
         <ToolBarButton OnClick="addDiv">Add div</ToolBarButton>
+        <ToolBarButton OnClick="addCard">Add Card</ToolBarButton>
         <ToolBarButton OnClick="deleteComponent">Delete</ToolBarButton>
+        <ToolBarButton OnClick="toJson">ToJson</ToolBarButton>
 
         @if (selectedEditorExtension != null) {
-            
+
             <CascadingValue Value="editorData">
                 <DynamicComponent @ref="selectedEditorExtension.DynamicComponent" Type="selectedEditorExtension.Type" Parameters="selectedEditorExtension.Parameters" />
             </CascadingValue>
@@ -23,7 +26,7 @@
 }
 
 <CascadingValue Value="editorData">
-    <BaseContainer Container="editorComponentData" />
+    <BaseContainer Container="container" />
 </CascadingValue>
 
 <style>
@@ -56,59 +59,131 @@
 @code {
     [Parameter]
     public RenderFragment ChildContent { get; set; }
-    private EditorComponentData editorComponentData = new EditorComponentData(null);
-    private ContainerData container => editorComponentData.Component as ContainerData;
+    private ContainerData container = new ContainerData(null); // cant be type of FlexBox
+    // private ContainerData container => editorComponentData.Component as ContainerData;
 
     private EditorData editorData = new EditorData();
-    private ComponentData selectedEditorExtension => editorData?.SelectedComponent?.EditorExtensionComponent;
-    private ComponentData selectedComponent => editorData?.SelectedComponent?.Component;
+    private ComponentData selectedEditorExtension => getSelectedEditor();
+    private ComponentData selectedComponent => editorData?.SelectedComponent;
+
+    Dictionary<Type, EditorComponentData> lookup = new Dictionary<Type, EditorComponentData>();
+
+
 
     protected override void OnInitialized() {
         base.OnInitialized();
-        editorComponentData.Component = new ContainerData(null);
         editorData.EditorDataChanged += refresh;
+
+        lookup.Add(typeof(FlexBoxContainer), new EditorComponentData(new ContainerData(typeof(FlexBoxContainer)),
+                                                            typeof(FlexBoxContainerEditor),
+                                                            new ContainerData(typeof(FlexBoxItem))));
+        lookup.Add(typeof(Components.Div), new EditorComponentData(new ComponentData(typeof(Components.Div))));
+        lookup.Add(typeof(FlexBoxItem), new EditorComponentData(new ContainerData(typeof(FlexBoxItem)), typeof(FlexBoxItemEditor), null));
+        lookup.Add(typeof(Card), new EditorComponentData(new ContainerData(typeof(Card))));
+
+
+        if (!string.IsNullOrEmpty(LayoutService.LayoutString)) {
+            var dto = JsonSerializer.Deserialize
+<SerializableComponentData>
+    (LayoutService.LayoutString);
+            ComponentData root = dto.ToComponentData();
+            container = root as ContainerData;
+        }
     }
 
     private void addFlexBox() {
-        EditorComponentData flexBox = new EditorComponentData(new ContainerData(typeof(FlexBoxContainer)), 
-                                                            typeof(FlexBoxContainerEditor), 
-                                                            new ContainerData(typeof(FlexBoxItem)));
-        this.addComponent(flexBox);
+        // EditorComponentData flexBox = new EditorComponentData(new ContainerData(typeof(FlexBoxContainer)),
+        //                                                     typeof(FlexBoxContainerEditor),
+        //                                                     new ContainerData(typeof(FlexBoxItem)));
+        this.addComponent(new ContainerData(typeof(FlexBoxContainer)));
     }
 
     private void addFlexBoxItem() {
-        EditorComponentData flexBoxItem = new EditorComponentData(new ContainerData(typeof(FlexBoxItem)), typeof(FlexBoxItemEditor), null);
-        this.addComponent(flexBoxItem);
+        // EditorComponentData flexBoxItem = new EditorComponentData(new ContainerData(typeof(FlexBoxItem)), typeof(FlexBoxItemEditor), null);
+        this.addComponent(new ContainerData(typeof(FlexBoxItem)));
     }
 
     private void addDiv() {
-        EditorComponentData div = new EditorComponentData(new ComponentData(typeof(Components.Div)));
-        this.addComponent(div);
+        // EditorComponentData div = new EditorComponentData(new ComponentData(typeof(Components.Div)));
+        this.addComponent(new ComponentData(typeof(Components.Div)));
+    }
+
+    private void addCard() {
+        this.addComponent(new ContainerData(typeof(Card)));
     }
 
     private void deleteComponent() {
         if (selectedComponent != null) {
-            ContainerData parent = (ContainerData)selectedComponent.Parent.Component; // bad change
+            ContainerData parent = (ContainerData)selectedComponent.Parent; // bad change
             var toRemove = parent?.Children
-                .FirstOrDefault(c => c.ID == selectedComponent.ID);
+            .FirstOrDefault(c => c.ID == selectedComponent.ID);
             parent?.Children.Remove(toRemove);
             editorData.SelectedComponent = null;
         }
     }
 
-    private void addComponent(EditorComponentData editorComponentData) {
-        if (selectedComponent != null && selectedComponent is ContainerData parent) {
-            editorComponentData.Component.Parent = editorData.SelectedComponent;
-            parent.Children.Add(editorComponentData.Component);
+    private void addComponent(ComponentData newComponent) {
+        // EditorComponentData newComponentData = lookup[type];
+
+        if (selectedComponent != null && selectedComponent is ContainerData parent && selectedComponent != container) {
+
+            EditorComponentData parentEditor = lookup[selectedComponent.Type];
+
+            if (newComponent is not ContainerData && newComponent is ComponentData && parentEditor.ChildComponent != null) {
+                // add flexboxitem
+                ContainerData c = new ContainerData(parentEditor.ChildComponent.Type);
+                // add children
+                c.Parent = parent;
+                newComponent.Parent = c;
+                c.Children.Add(newComponent);
+                parent.Children.Add(c);
+            } else {
+                newComponent.Parent = parent;
+                parent.Children.Add(newComponent);
+            }
+            // newComponent.Parent = parent;
+            // parent.Children.Add(newComponent);
+
         } else {
-            
-                
-            editorComponentData.Component.Parent = this.editorComponentData;
-            this.container.Children.Add(editorComponentData.Component);
+            newComponent.Parent = container;
+            this.container.Children.Add(newComponent);
+        }
+    }
+
+    private void addComponent(ComponentData newComponent, ComponentData parent) {
+        if (parent != null && parent is ContainerData containerData) {
+
+        } else {
+
         }
     }
 
     private void refresh(object sender, EditorData data) {
         StateHasChanged();
+    }
+
+    private ComponentData getSelectedEditor() {
+        if (editorData == null || editorData.SelectedComponent == null) {
+            return null;
+        }
+
+        if (editorData.SelectedComponent.Type == null) {
+            return null;
+        }
+
+        if (lookup.ContainsKey(editorData.SelectedComponent.Type)) {
+            return lookup[editorData.SelectedComponent.Type].EditorExtensionComponent;
+        }
+
+        return null;
+    }
+
+    private void toJson() {
+        var options = new JsonSerializerOptions {
+            WriteIndented = true // makes it pretty-printed
+        };
+
+        string json = JsonSerializer.Serialize(container.ToSerializable(), options);
+        LayoutService.LayoutString = json;
     }
 }

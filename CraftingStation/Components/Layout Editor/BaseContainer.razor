@@ -1,17 +1,15 @@
 @using CraftingStation.Components.Layout_Editor.Data
-<EditorComponent Style="@stylesString" ComponentData="Container">
+<EditorComponent Style="@StylesString" ComponentData="Container">
     @* @if (this.container == null) {
         return;
     }
  *@
-    @foreach (ComponentData component in this.container.Children) {
-        @* if (component is ContainerMetadata) { *@
-        <DynamicComponent @key="component.ID" @ref="component.DynamicComponent" Type="component.Type" Parameters="component.Parameters" />
-        @* } else {
-            <EditorComponent Component="component">
-                <DynamicComponent @key="component.ID" @ref="component.Component" Type="component.Type" Parameters="component.Parameters" />
-            </EditorComponent>
-        } *@
+
+    @if (this.Container != null) {
+        @foreach (ComponentData component in this.Container.Children) {
+            <DynamicComponent @key="component.ID" @ref="component.DynamicComponent" Type="component.Type" Parameters="component.Parameters" />
+
+        }
     }
 
 </EditorComponent>
@@ -19,12 +17,12 @@
 @code {
 
     [Parameter]
-    public EditorComponentData Container { get; set; }
+    public ContainerData Container { get; set; }
 
     [CascadingParameter]
     public EditorData EditorData { get; set; }
 
-    private ContainerData container => this.Container?.Component as ContainerData;
+    // private ContainerData container => this.Container as ContainerData;
 
     protected Dictionary<string, string> Styles = new Dictionary<string, string>();
 
@@ -34,9 +32,6 @@
         } else {
             this.Styles.Add(key, value);
         }
-
-
-
     }
 
     protected void UpdateParam(string name, object value) {
@@ -44,14 +39,14 @@
             return;
         }
 
-        Container.Component.AddOrUpdateParameter(name, value);
+        Container.AddOrUpdateParameter(name, value);
     }
 
     protected void Refresh() {
         StateHasChanged();
     }
 
-    private string stylesString {
+    protected string StylesString {
         get {
             string result = "";
 

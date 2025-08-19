@@ -5,7 +5,7 @@ namespace CraftingStation.Components.Layout_Editor.Data {
         public string ID { get; private set; }
         public Type Type { get; private set; }
         public Dictionary<string, object> Parameters { get; private set; } = new Dictionary<string, object>();
-        public EditorComponentData Parent { get; set; }
+        public ContainerData Parent { get; set; }
         public DynamicComponent DynamicComponent { get; set; }
 
         public ComponentData(Type type) {
@@ -18,14 +18,6 @@ namespace CraftingStation.Components.Layout_Editor.Data {
             this.ID = Guid.NewGuid().ToString();
             this.AddOrUpdateParameters(parameters);
         }
-
-        //private T getComponent() {
-        //    if (DynamicComponent == null || DynamicComponent.Instance == null || DynamicComponent.Instance is not T) {
-        //        return default;
-        //    }
-
-        //    return (T)DynamicComponent?.Instance;
-        //}
 
         public void AddOrUpdateParameter(string name, object value) {
             if (Parameters.ContainsKey(name)) {
@@ -42,15 +34,37 @@ namespace CraftingStation.Components.Layout_Editor.Data {
         }
     }
 
-    public class ContainerData : ComponentData{
+
+    public class ContainerData : ComponentData {
         public List<ComponentData> Children { get; set; } = new List<ComponentData>();
 
         public ContainerData(Type type) : base(type) {
-            
+            if (type == null) {
+                return;
+            }
+
+            if (type.IsSubclassOf(typeof(BaseContainer))) {
+                this.AddOrUpdateParameter(nameof(BaseContainer.Container), this);
+            }
         }
 
-        public ContainerData(Type type, Dictionary<string, object> parameters) : base(type,parameters){
-            
+        public ContainerData(Type type, Dictionary<string, object> parameters) : base(type, parameters) {
+            if (type == null) {
+                return;
+            }
+
+            if (type.IsSubclassOf(typeof(BaseContainer))) {
+                this.AddOrUpdateParameter(nameof(BaseContainer.Container), this);
+            }
+        }
+    }
+
+    public class SubContainerData : ContainerData {
+
+        public SubContainerData(Type type) : base(type) {
+        }
+
+        public SubContainerData(Type type, Dictionary<string, object> parameters) : base(type, parameters) {
         }
     }
 }

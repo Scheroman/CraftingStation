@@ -12,11 +12,11 @@
 
     private T getComponent()
     {
-        if (EditorData == null || EditorData.SelectedComponent == null || EditorData.SelectedComponent.Component == null
-            || EditorData.SelectedComponent.Component.DynamicComponent?.Instance == null || EditorData.SelectedComponent.Component.DynamicComponent.Instance is not T) {
+        if (EditorData == null || EditorData.SelectedComponent == null || EditorData.SelectedComponent == null
+            || EditorData.SelectedComponent.DynamicComponent?.Instance == null || EditorData.SelectedComponent.DynamicComponent.Instance is not T) {
             return default;
         }
 
-        return (T)EditorData?.SelectedComponent?.Component?.DynamicComponent.Instance;
+        return (T)EditorData?.SelectedComponent?.DynamicComponent.Instance;
     }
 }

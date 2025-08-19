@@ -17,7 +17,7 @@
     public RenderFragment ChildContent { get; set; }
 
     [Parameter]
-    public EditorComponentData ComponentData { get; set; }
+    public ComponentData ComponentData { get; set; }
 
     [CascadingParameter]
     public EditorData EditorData { get; set; }
@@ -26,24 +26,24 @@
     public string Style { get; set; }
 
 
-    private bool isSelected => ComponentData != null && ComponentData.Component.ID.Equals(EditorData?.SelectedComponent?.Component?.ID);
+    private bool isSelected => ComponentData != null && ComponentData.ID.Equals(EditorData?.SelectedComponent?.ID);
 
-    private void onHover(EditorComponentData editorComponent) {
+    private void onHover(ComponentData componentData) {
         if (!EditorData.Edit) {
             return;
         }
 
-        EditorData.HoveredComponent = editorComponent.Component;
+        EditorData.HoveredComponent = componentData;
     }
 
-    private void onClick(EditorComponentData editorComponent) {
+    private void onClick(ComponentData componentData) {
 
         if (!EditorData.Edit) {
             return;
         }
 
-        if (EditorData.SelectedComponent == null || !EditorData.SelectedComponent.Component.ID.Equals(editorComponent.Component.ID)) {
-            EditorData.SelectedComponent = editorComponent;
+        if (EditorData.SelectedComponent == null || !EditorData.SelectedComponent.ID.Equals(componentData.ID)) {
+            EditorData.SelectedComponent = componentData;
         } else {
             EditorData.SelectedComponent = null;
         }

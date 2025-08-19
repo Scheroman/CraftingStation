@@ -3,7 +3,7 @@ namespace CraftingStation.Components.Layout_Editor.Data {
     public class EditorData {
         public bool Edit = false;
         public ComponentData HoveredComponent = null;
-        public EditorComponentData SelectedComponent {
+        public ComponentData SelectedComponent {
             get {
                 return selectedComponent;
             }
@@ -15,7 +15,7 @@ namespace CraftingStation.Components.Layout_Editor.Data {
 
         public event EventHandler<EditorData> EditorDataChanged;
 
-        private EditorComponentData selectedComponent;
+        private ComponentData selectedComponent;
 
         public void InvokeChange() {
             EditorDataChanged.Invoke(null, this);
